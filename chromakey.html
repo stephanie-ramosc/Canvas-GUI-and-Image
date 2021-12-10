@@ -1,0 +1,205 @@
+<html>
+
+<head>
+<title>Part 3 - Chroma-key</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF8">
+<script type="text/javascript" src="dat.gui.js"></script>
+<script type="text/javascript" src="DoubleData.js"></script>
+
+<style>
+    canvas {border: solid 1px black;}
+    td {vertical-align: top;}
+</style>
+</head>
+
+<script type="text/javascript">
+
+    /* --- Image data for scalar images --- */
+
+    // TODO: Please check the Javascript file DoubleData.js
+    // functions:
+    // imageGray = new DoubleData(width,height)
+    // function checkSameSize(imageGray, imageRGBA)
+    // function rgb2gray(imageRGBA, imageGray)
+    // function gray2rgb(imageGray, imageRGBA, range)
+    // function putDoubleImage(ctx, imageGray, x,y, range)
+
+    /* --- Image processing functions --- */
+
+    // YOUR CODE HERE
+    function loadImage() {
+
+    	//imageObj1.onload = function() {
+    		var image1 = ctx1.drawImage(imageObj1, 0, 0, 256, 256);
+			//};
+		//imageObj1.src = 'images/shelley4.jpg';
+
+    	//var image1 = document.getElementById('pic1')
+        //ctx1.drawImage(image1 ,0, 0, 256, 256);
+        //var image2 = document.getElementById('pic2')
+        var image2 = ctx2.drawImage(imageObj2 ,0, 0, 256, 256);
+    	document.getElementById('text1').innerHTML = 'Load image: "shelley4.jpg" on canvas1.'
+    	document.getElementById('text2').innerHTML = 'Load image: "montagne.png" on canvas2.'
+    }
+
+    function toGray() {
+		//ctx3.drawImage(imageObj1, 0, 0, 256, 256);
+    	var imageData = ctx1.getImageData(0,0, 256, 256);
+    	//console.log(imageData);
+		var pixels = imageData.data;
+		for (var y=0; y<imageData.height; y++) {
+			for (var x=0; x<imageData.width; x++) {
+				id = 4*(x+y*imageData.width);
+				data = (pixels[id] + pixels[id + 1] + pixels[id + 2])/3;
+				pixels[id] = data;
+				pixels[id + 1] = data;
+				pixels[id + 2] = data;
+			}
+		}
+		/* for (i = 0; i < data.length; i += 4) {
+			 var brightness = 0.34 * data[i] + 0.5 * data[i + 1] + 0.16 * data[i + 2]
+    		data[i] = brightness
+    		data[i + 1] = brightness
+    		data[i + 2] = brightness
+  		} */
+		ctx3.putImageData(imageData, 0,0);
+        document.getElementById('text3').innerHTML = 'Image on canvas1 to gray.'
+    }
+
+    function detectChroma(chromaData, mask) {
+    	var chromaData = ctx1.getImageData(0, 0, 256, 256);
+    	var pixels = chromaData.data;
+    	for (var y=0; y<chromaData.height; y++) {
+			for (var x=0; x<chromaData.width; x++) {
+				id = 4*(x+y*chromaData.width);
+				red = pixels[id];
+				green = pixels[id + 1];
+				blue = pixels[id + 2];
+				if((green - red) > 20) {
+					pixels[id] = 255;
+					pixels[id + 1] = 255;
+					pixels[id + 2] = 255;
+				}
+				else {
+					pixels[id] = 0;
+					pixels[id + 1] = 0;
+					pixels[id + 2] = 0;
+				}
+			}
+		}
+		var mask = ctx3.putImageData(chromaData, 0,0);
+        document.getElementById('text3').innerHTML = 'Image on canvas1 to: white-background and black-foreground.'
+    }
+
+    function compositing() {
+    	var image1 = ctx1.getImageData(0,0, 256, 256);
+    	var image2 = ctx2.getImageData(0,0, 256, 256);
+    	//var image3 = ctx3.drawImage(imageObj3, 256, 256);
+    	var pixels = image1.data;
+    	var mask = image2.data;
+    	for (var y=0; y<image1.height; y++) {
+			for (var x=0; x<image1.width; x++) {
+				id = 4*(x+y*image1.width);
+				red = pixels[id];
+				green = pixels[id + 1];
+				blue = pixels[id + 2];
+				if((green - red) > 20) {
+					pixels[id] = mask[id];
+					pixels[id + 1] = mask[id + 1];
+					pixels[id + 2] = mask[id +2];
+					/*for (var t=0; t<image2.height; t++) {
+						for (var s=0; s<image2.width; s++) {
+							ids = 4*(s+t*image2.width);
+							pixels[id] = mask[ids];
+							pixels[id + 1] = mask[ids + 1];
+							pixels[id + 2] = mask[ids + 2];
+						}
+					} */
+				}
+				//else {
+					//pixels[id] = 0;
+					//pixels[id + 1] = 0;
+					//pixels[id + 2] = 0;
+				//}
+				//ctx3.putImageData(image1, 0,0);
+			}
+		}
+		//ctx3.putImageData(image1, 0,0);
+		ctx3.putImageData(image1, 0,0);
+        document.getElementById('text3').innerHTML = 'Combine image on canvas1 and canvas2 to canvas3.'
+    }
+
+    /* --- Canvases --- */
+    var canvas1, canvas2, canvas3;
+    var ctx1, ctx2, ctx3;
+    function initCanvas() {
+        canvas1 = document.getElementById('canvas-1');
+        ctx1 = canvas1.getContext('2d');
+
+        canvas2 = document.getElementById('canvas-2');
+        ctx2 = canvas2.getContext('2d');
+        
+        canvas3 = document.getElementById('canvas-3');
+        ctx3 = canvas3.getContext('2d');
+    }
+
+    /* --- Main initialization --- */
+    var imageObj1 = new Image();
+    var imageObj2 = new Image();
+    //var imageObj3 = new Image();
+    
+    function start() {
+        initCanvas();
+
+        // NO CODE HERE EXCEPT INITIALIZATION:
+        // EVERYTHING IS DONE IN CALLBACKS
+        //ctx1.drawImage(imageObj1 ,0, 0, 256, 256);
+        imageObj1.src = 'images/shelley4.jpg';
+        imageObj2.src = 'images/montagne.png';
+        
+        // Demo DoubleImage. You can remove it
+        /*var grayImage = new DoubleData(256,256)
+        for (var y=0; y<256; y++) {
+            for (var x=0; x<256; x++) {
+                grayImage.data[x+y*256] = x+y
+            }
+        }
+        putDoubleData(ctx1,grayImage, 0,0, [0,255])
+        document.getElementById('text').innerHTML = 'DoubleData example' */
+    }
+</script>
+
+<body onload="start();">  
+    <h2>Part 3: Chroma-Key - <i>STEPHANIE M. RAMOS CAMACHO</i></h2>
+    <h4>Graphics</h4>
+    <table><tbody>
+    <tr>
+    <td>Canvas 1</td>
+    <td>Canvas 2</td>
+    <td>Canvas 3</td>
+    </tr>
+    <tr>
+    <td><canvas id="canvas-1" width="256" height="256"></canvas></td>
+    <td><canvas id="canvas-2" width="256" height="256"></canvas></td>
+    <td><canvas id="canvas-3" width="256" height="256"></canvas></td>
+    </tr>
+    <tr>
+    <td><small><span id="text1"></span></small></td>
+    <td><small><span id="text2"></span></small></td>
+    <td><small><span id="text3"></span></small></td>
+    </tr>
+    </tbody></table>
+    <button onclick="loadImage()">Load Image</button>
+    <button onclick="toGray()">To gray</button>
+    <button onclick="detectChroma()">Chroma-Key</button>
+    <button onclick="compositing()">Compose</button>
+    
+    <h4>Description</h4>
+    <i> The application is the chroma- key technique to replace the green background by another image. The HTML page should contain 3 canvases (canvas1, canvas2, canvas3) and a few buttons: “Load”, “To gray”, “Chroma-Key”, “Compose”.</i><br>
+    When 'Load Image' button is pressed, images for canvas 1 and canvas 2 is loaded.<br>
+    When 'To gray' button is pressed, image on canvas 1 will be in grey on canvas 3 (after 'Load image' button were pressed).<br>
+    When 'Chroma-Key' button is pressed, image on canvas 1 will be: the background in white and foreground in black on canvas 3 (after 'Load image' button were pressed).<br>
+    When 'Compose' button is pressed, image on canvas 1 will combine with image on canvas 2 and will be on canvas 3 (after 'Load image' button were pressed).
+
+</body>
+</html>

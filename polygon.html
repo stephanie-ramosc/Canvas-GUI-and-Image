@@ -1,0 +1,314 @@
+<html>
+
+<head>
+<title>Part 2: polygon</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF8">
+
+<style>
+    canvas {border: solid 1px black}
+    td {vertical-align: top;}
+    #msgBox {color:gray;}
+    h1, h2, h3, h4 {margin-top: 5px; margin-bottom: 5px;}
+</style>
+</head>
+
+<script type="text/javascript">
+    // Keep canvas, ctx and model as global variables
+    // Dirty, but practical for this small scale demo
+    // A real production system would need to define a scope to protect them
+    var canvas;
+    var ctx;
+    
+    /* ### Model ### */
+    
+    var model;
+    function initModel() {
+        model = {strikeColor: 'purple', fillColor: 'plum', selection: -1,
+                isDragging: false,  
+                pts: [{x:Math.floor((Math.random()*300)),
+                       y:Math.floor((Math.random()*300))},
+                            {x:Math.floor((Math.random()*300)),
+                            y:Math.floor((Math.random()*300))},
+                            //{x:Math.floor((Math.random()*300)),
+                            //y:Math.floor((Math.random()*300))},
+                                {x:Math.floor((Math.random()*300)),
+                                y:Math.floor((Math.random()*300))}]
+                }
+    }
+
+    /* ### Mouse ### */
+    
+    function initMouse(canvas) {
+        canvas.addEventListener('mousedown', function(e){ e.preventDefault(); }, false);
+        canvas.addEventListener("mousedown", onMouseDown, false);
+        canvas.addEventListener("mouseup",   onMouseUp, false);
+        canvas.addEventListener("mousemove", onMouseMove, false);
+    }
+
+    // Auxiliary function to convert from client to canvas coordinates
+    // Note: very simple; will break if canvas is not top level element
+    function getMousePos(canvas, event) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: Math.round(event.clientX - rect.left),
+          y: Math.round(event.clientY - rect.top)
+        };
+    }
+
+    //var startingPos = [];
+
+    function onMouseDown(event) {
+        console.log("onMouseDown: event = ",event);        
+        var pos = getMousePos(canvas, event);
+        
+        document.getElementById('msgBox').innerHTML = 
+           "mouseDown (x="+pos.x+",y="+pos.y+")";
+           
+        // REMOVE THIS CODE TO REPLACE WITH YOURS
+        findVertex(pos);
+
+        if (model.selection != -1) {
+            model.isDragging = true;
+        }
+        //isDragging();
+        //ctx.beginPath()
+        //ctx.strokeStyle = model.color
+        //ctx.rect(pos.x-5,pos.y-5, 10,10);
+        //ctx.stroke()
+    }
+
+    function onMouseUp(event) {
+        console.log("onMouseUp: event = ",event);        
+        var pos = getMousePos(canvas, event);
+        
+        document.getElementById('msgBox').innerHTML = 
+           "mouseUp (x="+pos.x+",y="+pos.y+")";
+
+        model.isDragging = false;
+    }
+
+    function onMouseMove(event) {
+        console.log("onMouseMove: event = ",event);        
+        var pos = getMousePos(canvas, event);
+        
+        document.getElementById('msgBox').innerHTML = 
+           "mouseMove (x="+pos.x+",y="+pos.y+")";
+
+        for (i = 0; i < (model.pts).length; i++) {
+            if(model.isDragging == true && model.selection == i) {
+            model.pts[i] = pos;
+            drawPolygon();
+            }
+        }
+    }
+
+    /* ### Keyboard ### */
+    
+    function initKeys() {
+        // Approach 1: handle keyDown in the canvas
+        //canvas.setAttribute('tabindex','0');
+        //canvas.focus();
+        //canvas.addEventListener( "keydown", onKeyDown, true);
+        
+        // Approach 2: handle it at document level
+        document.addEventListener( "keydown", onKeyDown, true);
+    }
+
+    function onKeyDown(event) {
+        console.log('onMouseUp: event=',event)
+        document.getElementById('msgBox').innerHTML = 
+              "keyDown (key='"+event.key+"',keyCode="+event.keyCode+ ', Selection: '+model.selection+")";
+
+        switch(event.keyCode) {
+            //ArrowLeft
+            case 37:
+                for (i = 0; i < (model.pts).length; i++) {
+                    if(model.selection == i) {
+                        if(model.pts[i].x >= 2) {
+                            model.pts[i].x -= 2
+                            drawPolygon()
+                        }
+                    }
+                }
+            break;
+            case 38:
+            //ArrowUp
+                for (i = 0; i < (model.pts).length; i++) {
+                    if(model.selection == i) {
+                        if(model.pts[i].y >= 2) {
+                            model.pts[i].y -= 2
+                            drawPolygon()
+                        }
+                    }
+                }
+            break;
+            case 39:
+            //ArrowRight
+                for (i = 0; i < (model.pts).length; i++) {
+                    if(model.selection == i) {
+                        if(model.pts[i].x <= 398) {
+                            model.pts[i].x += 2
+                            drawPolygon()
+                        }
+                    }
+                }
+            break;
+            case 40:
+            //ArrowDown
+                for (i = 0; i < (model.pts).length; i++) {
+                    if(model.selection == i) {
+                        if(model.pts[i].y <= 298) {
+                            model.pts[i].y += 2
+                            drawPolygon()
+                        }
+                    }
+                }
+            break;
+            case 187:
+            //'+' key
+                for (i = 0; i < (model.pts).length; i++) {
+                    if(model.selection == i) {
+                        if ((model.pts).length == i + 1) {
+                            //(model.pts).length + 1%(model.pts.lenth);
+                            s = (model.pts[i].x + model.pts[0].x)/2
+                            t = (model.pts[i].y + model.pts[0].y)/2
+                            model.pts.splice((model.pts).lenght + 1, 0, {x:s, y:t})
+                            drawPolygon()
+                        }
+                        else {
+                            a = (model.pts[i].x + model.pts[i + 1].x)/2
+                            b = (model.pts[i].y + model.pts[i + 1].y)/2
+                            model.pts.splice((model.pts).lenght + 1, 0, {x:a, y:b})
+                            //model.pts.y.splice((model.pts).length + 1, 0, b)
+                            drawPolygon()
+                        }
+                    }
+                }
+            break;
+            case 189:
+            //'-' key
+                for (i = 0; i < (model.pts).length; i++) {
+                    if(model.selection == i) {
+                        model.pts.splice(i, 1)
+                        drawPolygon()
+                    }
+                }
+            break;
+        }
+        event.preventDefault();
+    }
+
+    /* ### Drawing ### */
+
+    function drawPolygon() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.strokeStyle = model.strikeColor
+        ctx.fillStyle = model.fillColor
+        ctx.lineWidth = 2
+
+        ctx.beginPath()
+        ctx.moveTo(model.pts[0].x, model.pts[0].y)
+        //ctx.lineTo(model.pts[1].x, model.pts[1].y)
+        //ctx.lineTo(model.pts[2].x, model.pts[2].y)
+        //ctx.lineTo(model.pts[3].x, model.pts[3].y)
+        //ctx.closePath()
+        //ctx.fill()
+        //ctx.stroke()
+
+        //drawVertex()
+        
+        //ctx.save()
+        for (i = 1; i < (model.pts).length; i++) {
+            ctx.lineTo(model.pts[i].x, model.pts[i].y)
+        }
+        ctx.closePath()
+        ctx.fill()
+        ctx.stroke()
+        drawVertex()
+        //ctx.save()
+    }
+
+    /* function redraw() {
+        ctx.clearRect(0,0,canvas.width,canvas.height)
+
+        // Just draw stuff: hardcoded. Replace with your own code
+        //ctx.strokeStyle = model.color
+        //ctx.lineWidth = 2
+        //ctx.beginPath()
+        //ctx.moveTo(20, 20)
+        //ctx.lineTo(100, 50)
+        //ctx.lineTo(50, 150)
+        //ctx.stroke()
+        drawPolygon()
+        drawVertex()
+    } */
+
+    function drawVertex() {
+        ctx.strokeStyle = 'black'
+        ctx.setLineDash([]);
+        ctx.lineWidth = 2
+
+         for (i = 0; i < (model.pts).length; i++) {
+            ctx.beginPath()
+            ctx.font = "15px Arial";
+            ctx.fillStyle = 'blue'
+            ctx.textAlign = "center"
+            ctx.fillText(i, model.pts[i].x-0, model.pts[i].y-5)
+            ctx.stroke()
+        
+            if(model.selection == i) {
+                ctx.fillStyle = 'red'
+                ctx.fillRect(model.pts[i].x-3, model.pts[i].y-3, 10, 10)
+                ctx.strokeRect(model.pts[i].x-3, model.pts[i].y-3, 10, 10)
+            }
+            else {
+                ctx.fillStyle = 'blue'
+                ctx.fillRect(model.pts[i].x-3, model.pts[i].y-3, 10, 10)
+                ctx.strokeRect(model.pts[i].x-3, model.pts[i].y-3, 10, 10)
+            }
+        }
+    }
+
+    function findVertex(pos) {
+        for (i = 0; i < (model.pts).length; i++) {
+            if((pos.x >= model.pts[i].x -10 && pos.x <= model.pts[i].x + 10) && (pos.y >= model.pts[i].y - 10 && pos.y <= model.pts[i].y + 10)) {model.selection = i;
+                drawVertex();
+            }
+            else {
+                model.selection = -1;
+            }
+        }
+        drawVertex();
+    }
+
+    /* ### Initialization ### */ 
+    
+    function onLoad() {
+        canvas = document.getElementById('myCanvas');
+        ctx = canvas.getContext('2d');
+
+        // Do init
+        initModel()
+        initKeys()
+        initMouse(canvas)
+
+        // Draw stuff
+        drawPolygon()
+        //redraw()
+    }
+</script>
+
+<body onload="onLoad();">
+    <h2>Part 2: Interactive Polygon - <i>STEPHANIE M. RAMOS CAMACHO</i></h2>
+
+    <h4>Canvas</h4>
+    <canvas id="myCanvas" width="450" height="350"></canvas>
+    <p><small>Message: <span id="msgBox"></span></small></p>
+    
+    <h4>Description</h4>
+    <i>Interact with the polygon by clicking and selecting vertices to move them.</i><br>
+    <pre>
+<b>At loading:</b> Draws always a different triangle.<br><b>Mouse click:</b> Selected vertex in red to interact.<br>             While left click press and mouse move, selected vertex will mouse.<br><b>Key Press:</b> Shows the key that has been pressed.<br>           If an arrow key (UP, DOWN, RIGHT, LEFT) is pressed while a vertex is selected, the vertex will move.<br>           The key ‘-‘, remove the current vertex.<br>           The key '+', add a vertex between the vertex selected and the next one.</pre>
+    
+</body>
+</html>   

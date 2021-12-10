@@ -1,0 +1,221 @@
+<html>
+
+<head>
+<title>Part 1 - Simple graphics</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF8">
+
+<style>
+    canvas {border: solid 1px black}
+    svg {border: solid 1px black}
+    td {vertical-align: top;}
+    #msgBox {color:gray;}
+    h1, h2, h3, h4 {margin-top: 5px; margin-bottom: 5px;}
+</style>
+</head>
+
+<script type="text/javascript">
+    // Keep canvas, ctx, svg and model as global variables
+    // Dirty, but practical for this small scale demo
+    // A real production system would need to define a scope to protect them
+    var canvas;
+    var ctx;
+    var svg;
+    
+    /* ### Model ### */
+    var model
+    function initModel() {
+        model = {color : 'red',
+                name : 'BLINKY'}
+    }
+
+    var ghosts = {
+        current : 1,
+        names : ['CLYDE', 'PINKY', 'INKY', 'BLINKY'],
+        colors : ['orange', 'pink', 'cyan', 'red']
+    }
+
+    /* ### Mouse ### */
+    
+    function initMouse(canvas) {
+        canvas.addEventListener("mousedown", onMouseDown, false);
+        canvas.addEventListener("mouseup", onMouseUp, false);
+    }
+    function onMouseDown(event) {
+        console.log("onMouseDown: event = ",event);        
+        if (event.target==canvas) {
+            document.getElementById('msgBox').innerHTML = "mouseDown in canvas";
+            ghosts.current = (ghosts.current + 1)%4;
+            refreshCanvas();
+        }
+        else
+            document.getElementById('msgBox').innerHTML = "mouseDown in SVG";
+    }
+    function onMouseUp(event) {
+        console.log("onMouseUp: event = ",event);        
+        document.getElementById('msgBox').innerHTML = 
+           "mouseUp";
+        refreshCanvas();
+    }
+
+    /* ### Drawing ### */
+
+    function refreshCanvas() {
+        model.color = ghosts.colors[ghosts.current];
+        model.name = ghosts.names[ghosts.current];
+        //ctx.fillStyle = ghosts.colors[0];
+        drawCanvas();
+        }
+
+    function drawCanvas() {
+        ctx.clearRect(0,0,canvas.width,canvas.height)
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Just draw stuff: hardcoded. Replace with your own stuff
+        ctx.fillStyle = model.color;
+        ctx.beginPath();
+        ctx.arc(100, 95, 100, 0, 2 * Math.PI);
+        //ctx.bezierCurveTo(200, 80, 99, 68, 97, 88);
+        ctx.moveTo(200, 80);
+        ctx.lineTo(200, 250);
+        //ctx.arc(100, 150, 100, 0, Math.PI, true);
+        //ctx.bezierCurveTo(200, 100, 89, 28, 97, 88);
+        //ctx.bezierCurveTo(105, 88, 111, 94, 111, 102);
+        ctx.lineTo(168, 203);
+        ctx.lineTo(133, 250);
+        ctx.lineTo(96, 210);
+        ctx.lineTo(50, 250);
+        ctx.lineTo(20, 207);
+        ctx.lineTo(0, 250);
+        ctx.lineTo(0, 81);
+        ctx.closePath();
+        ctx.fill();
+    
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.ellipse(70, 100, 30, 40, 0, 10, 3.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.ellipse(140, 100, 30, 40, 0, 10, 3.5);
+        //ctx.moveTo(91, 96);
+        //ctx.bezierCurveTo(88, 96, 87, 99, 87, 101);
+        //ctx.bezierCurveTo(87, 103, 88, 106, 91, 106);
+        //ctx.bezierCurveTo(94, 106, 95, 103, 95, 101);
+        //ctx.bezierCurveTo(95, 99, 94, 96, 91, 96);
+        //ctx.moveTo(103, 96);
+        //ctx.bezierCurveTo(100, 96, 99, 99, 99, 101);
+        //ctx.bezierCurveTo(99, 103, 100, 106, 103, 106);
+        //ctx.bezierCurveTo(106, 106, 107, 103, 107, 101);
+        //ctx.bezierCurveTo(107, 99, 106, 96, 103, 96);
+        ctx.closePath();
+        ctx.fill();
+    
+        ctx.fillStyle = 'blue';
+        ctx.beginPath();
+        ctx.ellipse(60, 105, 14, 19, 0, 10, 3.5);
+        ctx.closePath();
+        ctx.fill();
+    
+        ctx.fillStyle = 'blue';
+        ctx.beginPath();
+        ctx.ellipse(130, 105, 14, 19, 0, 10, 3.5);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.font = "55px Arial";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.fillText(model.name, canvas.width/2.5, canvas.height - 50);
+
+        //ctx.strokeStyle = 'blue';
+        //ctx.lineWidth = 3;
+        //ctx.stroke();
+    }
+    
+    //let index = 0;
+    var x = 0;
+    function allGhosts() {
+        const children = document.getElementById('btn1').children;
+        for(let i = 0; i < children.length - 5; i++ ){
+        //children[i].setAttribute('fill', ghosts.colors[2]);
+        //document.getElementById('btn1').onclick = function() {
+            children[i].setAttribute('fill', ghosts.colors[x]);
+            document.getElementById('textid').textContent = ghosts.names[x];
+            //index = (index + 1) % ghosts.names.length;
+        }
+        x = x + 1 % ghosts.names.length;
+        if (x > 3) {
+            x = 0;
+        }
+    //document.getElementById('textid').textContent = ghosts.names[2];
+    }
+
+//function changeTextP(){
+  //document.getElementById('textid').textContent = "PINKY";
+//}
+//function callred() {
+ //document.getElementById('btn1').classList.toggle("forcecolor");
+ //document.getElementById('textid').textContent = "PINKY"
+//}
+
+    /* ### Initialization ### */ 
+    
+    function onLoad() {
+        canvas = document.getElementById('myCanvas');
+        ctx = canvas.getContext('2d');
+        svg = document.getElementById('mySVG');
+
+        // Do init
+        initModel()
+        initMouse(canvas)
+        initMouse(svg)
+
+        // Draw stuff on the canvas
+        drawCanvas()
+    }
+</script>
+
+<body onload="onLoad();">    
+    <h2>Part 1: Simple graphics - <i>STEPHANIE M. RAMOS CAMACHO</i></h2>
+
+    <h4>Graphics</h4>
+    <table><tbody>
+    <tr>
+        <td>SVG</td>
+        <td>Canvas</td>
+    </tr>
+    <tr>
+      <td>
+         <svg id='mySVG' width="250" height="350"
+              xmlns="http://www.w3.org/2000/svg" style="background-color:black">
+              <g id="btn1" onclick="allGhosts()">
+              <circle cx="100" cy="100" r="100" fill="red" />
+              <path d="M 0 250 L0 100 75 100 z" fill="red" />
+              <path d="M 50 250 L-50 100 150 150" fill="red" />
+              <path d="M 125 250 L0 100 200 150" fill="red" />
+              <path d="M 200 250 L75 100 200 100" fill="red" />
+              <ellipse cx="60" cy="90" rx="30" ry="35" style="fill:white;stroke:white;stroke-width:2" />
+              <ellipse cx="130" cy="90" rx="30" ry="35" style="fill:white;stroke:white;stroke-width:2" />
+              <ellipse cx="50" cy="95" rx="15" ry="20" style="fill:blue;stroke:white;stroke-width:2" />
+              <ellipse cx="120" cy="95" rx="15" ry="20" style="fill:blue;stroke:white;stroke-width:2" />
+            <!-- Label the points -->
+            <g font-size="55" font-family="sans-serif" fill="white" stroke="none" text-anchor="middle">
+                <text id ="textid" x="125" y="300" dx="-30">BLINKY</text>
+            </g>
+         </svg>
+      </td>
+      <td>
+         <canvas id="myCanvas" width="250" height="350"></canvas>
+      </td>
+    </tbody><table>
+    <p><small>Message: <span id="msgBox"></span></small></p>
+
+    <h4>Description</h4>
+    <i>Pacman's ghosts: BLINKY: red, CLYDE: orange, PINKY: pink, and INKY: cyan</i><br>
+    At loading: Draws a red ghost: BLINKY. SVG content is already declared directly in HTML.<br>
+    Mouse click: Changes ghost's name and color when click on ghost.
+    
+</body>
+</html>   
