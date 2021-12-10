@@ -3,6 +3,7 @@
 Implement graphics drawing and GUI interaction in HTML5 at three different levels: vector graphics (SVG), raster graphics (Canvas API) and raw raster data (Image processing).
  
 Part 1: Simple Graphics – Vector and Raster
+
 Q1) PacMan graphics:
 Recreate the image containing PacMan Ghost BLINKY using two techniques: a) Canvas API, using paths and text b) SVG, using path/poly tags and text tag.
 Q2) Modifying graphics after user’s click:
